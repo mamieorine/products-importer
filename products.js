@@ -183,7 +183,7 @@ async function processProducts(dynamodb, productTableName, variationTableName, p
       }
 
       const productOptionMap = await processVariations(dynamodb, variationTableName, productOptionTableName, product, variations);
-      await processSkus(dynamodb, skuTableName, productOptionsSkuTableName, productOptionTableName, product, variations, csvRows, productOptionMap); // Process SKUs
+      await processSkus(dynamodb, skuTableName, productOptionsSkuTableName, product, variations, csvRows, productOptionMap); // Process SKUs
     }
     console.log('Product import completed.');
   } catch (error) {

@@ -1,4 +1,5 @@
 const { processProductOptionSkus } = require('./productOptionsSku');
+const { processProductImages } = require('./productImages.js');
 
 // Function to insert SKU data into DynamoDB
 async function insertSkuIntoDynamoDB(dynamodb, tableName, sku) {
@@ -17,7 +18,7 @@ async function insertSkuIntoDynamoDB(dynamodb, tableName, sku) {
 }
 
 // Function to process SKUs for a product
-async function processSkus(dynamodb, skuTableName, productOptionsSkuTableName, productOptionTableName, product, variations, csvRows, productOptionMap) {
+async function processSkus(dynamodb, skuTableName, productOptionsSkuTableName, product, variations, csvRows, productOptionMap) {
   for (const row of csvRows) {
     const sku = {
       id: row.SKU.trim(), // Use the SKU ID from the CSV file
@@ -25,7 +26,7 @@ async function processSkus(dynamodb, skuTableName, productOptionsSkuTableName, p
       __typename: 'Sku',
       class: 'product',
       createdAt: new Date().toISOString(),
-      image: '', // Assuming image is not provided in CSV
+      image: row.fileName?.trim(), // Assuming image is not provided in CSV
       paymentType: product.paymentType,
       productSkusId: product.id,
       productSkusVersion: product.version,
@@ -34,6 +35,15 @@ async function processSkus(dynamodb, skuTableName, productOptionsSkuTableName, p
       value: row.RRP, // Assuming value comes from the CSV file
       valueType: 'RRP' // Assuming a constant value
     };
+
+    if (row.fileName?.trim()) {
+      sku.image = row.fileName?.trim();
+    }
+
+    const result = await processProductImages(row);
+    if (result?.status !== 200) {
+      console.error(`The image is already existed`);
+    }
 
     await insertSkuIntoDynamoDB(dynamodb, skuTableName, sku);
 
